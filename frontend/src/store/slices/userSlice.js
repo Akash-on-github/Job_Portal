@@ -1,3 +1,4 @@
+// store/slices/userSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
@@ -11,79 +12,58 @@ const userSlice = createSlice({
     message: null,
   },
   reducers: {
-    registerRequest(state, action) {
+    registerRequest(state) {
       state.loading = true;
-      state.isAuthenticated = false;
-      state.user = {};
-      state.error = null;
-      state.message = null;
     },
     registerSuccess(state, action) {
       state.loading = false;
       state.isAuthenticated = true;
       state.user = action.payload.user;
-      state.error = null;
       state.message = action.payload.message;
+      state.error = null;
     },
     registerFailed(state, action) {
       state.loading = false;
       state.isAuthenticated = false;
-      state.user = {};
       state.error = action.payload;
-      state.message = null;
     },
-    loginRequest(state, action) {
+    loginRequest(state) {
       state.loading = true;
-      state.isAuthenticated = false;
-      state.user = {};
-      state.error = null;
-      state.message = null;
     },
     loginSuccess(state, action) {
       state.loading = false;
       state.isAuthenticated = true;
       state.user = action.payload.user;
-      state.error = null;
       state.message = action.payload.message;
+      state.error = null;
     },
     loginFailed(state, action) {
       state.loading = false;
       state.isAuthenticated = false;
-      state.user = {};
       state.error = action.payload;
-      state.message = null;
     },
-    fetchUserRequest(state, action) {
+    fetchUserRequest(state) {
       state.loading = true;
-      state.isAuthenticated = false;
-      state.user = {};
-      state.error = null;
     },
     fetchUserSuccess(state, action) {
       state.loading = false;
       state.isAuthenticated = true;
       state.user = action.payload;
-      state.error = null;
     },
     fetchUserFailed(state, action) {
       state.loading = false;
       state.isAuthenticated = false;
-      state.user = {};
       state.error = action.payload;
     },
-    logoutSuccess(state, action) {
+    logoutSuccess(state) {
       state.isAuthenticated = false;
       state.user = {};
-      state.error = null;
     },
     logoutFailed(state, action) {
-      state.isAuthenticated = state.isAuthenticated;
-      state.user = state.user;
       state.error = action.payload;
     },
-    clearAllErrors(state, action) {
+    clearAllErrors(state) {
       state.error = null;
-      state.user = state.user;
     },
   },
 });
@@ -100,9 +80,11 @@ export const register = (data) => async (dispatch) => {
       }
     );
     dispatch(userSlice.actions.registerSuccess(response.data));
-    dispatch(userSlice.actions.clearAllErrors());
   } catch (error) {
-    dispatch(userSlice.actions.registerFailed(error.response.data.message));
+    console.error("Registration error:", error);
+    const errMsg =
+      error?.response?.data?.message || error.message || "Registration failed";
+    dispatch(userSlice.actions.registerFailed(errMsg));
   }
 };
 
@@ -118,9 +100,11 @@ export const login = (data) => async (dispatch) => {
       }
     );
     dispatch(userSlice.actions.loginSuccess(response.data));
-    dispatch(userSlice.actions.clearAllErrors());
   } catch (error) {
-    dispatch(userSlice.actions.loginFailed(error.response.data.message));
+    console.error("Login error:", error);
+    const errMsg =
+      error?.response?.data?.message || error.message || "Login failed";
+    dispatch(userSlice.actions.loginFailed(errMsg));
   }
 };
 
@@ -134,23 +118,23 @@ export const getUser = () => async (dispatch) => {
       }
     );
     dispatch(userSlice.actions.fetchUserSuccess(response.data.user));
-    dispatch(userSlice.actions.clearAllErrors());
   } catch (error) {
-    dispatch(userSlice.actions.fetchUserFailed(error.response.data.message));
+    const errMsg =
+      error?.response?.data?.message || error.message || "Fetch user failed";
+    dispatch(userSlice.actions.fetchUserFailed(errMsg));
   }
 };
+
 export const logout = () => async (dispatch) => {
   try {
-    const response = await axios.get(
-      "http://localhost:4000/api/v1/user/logout",
-      {
-        withCredentials: true,
-      }
-    );
+    await axios.get("http://localhost:4000/api/v1/user/logout", {
+      withCredentials: true,
+    });
     dispatch(userSlice.actions.logoutSuccess());
-    dispatch(userSlice.actions.clearAllErrors());
   } catch (error) {
-    dispatch(userSlice.actions.logoutFailed(error.response.data.message));
+    const errMsg =
+      error?.response?.data?.message || error.message || "Logout failed";
+    dispatch(userSlice.actions.logoutFailed(errMsg));
   }
 };
 
